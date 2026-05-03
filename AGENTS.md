@@ -62,5 +62,7 @@ rg --hidden --no-ignore -n "private-token|secret|internal-domain.example|HOME_PA
   --glob '!target/**' \
   --glob '!.git/**' \
   --glob '!.omx/**' \
-  --glob '!AGENTS.md'
+  --glob '!AGENTS.md' \
+  --glob '!CONTRIBUTING.md' \
+  --glob '!SECURITY.md'
 ```

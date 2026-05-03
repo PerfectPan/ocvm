@@ -63,3 +63,6 @@ Do not commit private tokens, local config, generated workspaces, internal hostn
 
 Keep package contents intentional. If a file should ship in the crate, verify it appears in `cargo package --list --allow-dirty`.
 
+## Security Reports
+
+Use `SECURITY.md` for vulnerability reporting guidance. Do not include secrets, exploit details, or private infrastructure in public issues or pull requests.

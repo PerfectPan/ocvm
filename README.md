@@ -160,4 +160,4 @@ cargo test
 
 The CI workflow runs the same gates on stable Rust.
 
-Contribution workflow is documented in [CONTRIBUTING.md](./CONTRIBUTING.md). AI delivery and repository hygiene rules are documented in [AGENTS.md](./AGENTS.md).
+Contribution workflow is documented in [CONTRIBUTING.md](./CONTRIBUTING.md). AI delivery and repository hygiene rules are documented in [AGENTS.md](./AGENTS.md), with a Claude-specific entrypoint in [CLAUDE.md](./CLAUDE.md). Security reporting guidance lives in [SECURITY.md](./SECURITY.md).
