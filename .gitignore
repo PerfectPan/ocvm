@@ -1,0 +1,5 @@
+/target/
+/.ocvm/
+/.openclaw-version
+*.log
+.DS_Store
