@@ -212,6 +212,15 @@ Run real npm OpenClaw install validation in Docker instead of on the host:
 ./scripts/e2e-docker.sh
 ```
 
+## Landing Page
+
+The TanStack Start landing page lives in `site/` and is configured for Vercel preview deployments from this repository:
+
+```bash
+npm ci --prefix site
+npm run build --prefix site
+```
+
 ## Development
 
 ```bash

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">ocvm mark</title>
+  <desc id="desc">A terminal prompt inside a rounded square.</desc>
+  <rect width="512" height="512" rx="92" fill="#1b1f1a"/>
+  <path fill="#d8f5cc" d="M129 165 224 256l-95 91-30-32 61-59-61-59 30-32Z"/>
+  <path fill="#fffdf7" d="M230 330h154v42H230z"/>
+  <path fill="#8fb08e" d="M230 140h154v42H230z"/>
+  <path fill="#46604b" d="M230 235h121v42H230z"/>
+</svg>

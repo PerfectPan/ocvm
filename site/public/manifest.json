@@ -1,0 +1,15 @@
+{
+  "short_name": "ocvm",
+  "name": "ocvm - OpenClaw Version Manager",
+  "icons": [
+    {
+      "src": "ocvm-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#1b1f1a",
+  "background_color": "#f5f2ea"
+}

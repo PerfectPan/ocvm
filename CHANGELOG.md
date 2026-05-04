@@ -10,6 +10,7 @@
 - Added snapshot and rollback metadata commands.
 - Added staged executable SHA256 verification for release manifests.
 - Added GitHub Release workflow, install script, and Docker e2e harness.
+- Added a TanStack Start landing page with Vercel deployment configuration.
 - Added staging install flow with `openclaw --version` verification and backup restore when replacing an existing version.
 - Added project pin resolution through `.openclaw-version`.
 - Added CI gates for fmt, clippy, and tests.
