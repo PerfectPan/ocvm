@@ -31,12 +31,12 @@ Users can install the latest release with this command once the repository is pu
 curl -fsSL https://raw.githubusercontent.com/PerfectPan/ocvm/main/install.sh | sh
 ```
 
-For private repository installs, anonymous `raw.githubusercontent.com` URLs return 404. Either run `./install.sh` from an authenticated checkout, or pass a token with `repo` access to both `curl` and the install script:
+For private repository installs, anonymous `raw.githubusercontent.com` URLs return 404. Use an authenticated checkout until the repo is public:
 
 ```bash
-curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" \
-  https://raw.githubusercontent.com/PerfectPan/ocvm/main/install.sh | \
-  GITHUB_TOKEN="$GITHUB_TOKEN" sh
+git clone git@github.com:PerfectPan/ocvm.git
+cd ocvm
+./install.sh
 ```
 
 ## Docker E2E

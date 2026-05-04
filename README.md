@@ -204,20 +204,12 @@ After a GitHub Release exists and the repository is public:
 curl -fsSL https://raw.githubusercontent.com/PerfectPan/ocvm/main/install.sh | sh
 ```
 
-While the repository is private, anonymous `raw.githubusercontent.com` URLs return 404. Install from an authenticated checkout instead:
+While the repository is private, anonymous `raw.githubusercontent.com` URLs return 404. Use an authenticated checkout until the repo is public:
 
 ```bash
 git clone git@github.com:PerfectPan/ocvm.git
 cd ocvm
 ./install.sh
-```
-
-For token-based private installs, pass the token to both `curl` and the install script:
-
-```bash
-curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" \
-  https://raw.githubusercontent.com/PerfectPan/ocvm/main/install.sh | \
-  GITHUB_TOKEN="$GITHUB_TOKEN" sh
 ```
 
 ## Docker E2E
