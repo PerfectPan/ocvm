@@ -25,16 +25,18 @@ The `Release` workflow builds platform binaries, packages archives, generates SH
 
 ## Install Script
 
-Users can install the latest release with:
+Users can install the latest release with this command once the repository is public:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/PerfectPan/ocvm/main/install.sh | sh
 ```
 
-For private repository installs, set a token with `repo` access:
+For private repository installs, anonymous `raw.githubusercontent.com` URLs return 404. Either run `./install.sh` from an authenticated checkout, or pass a token with `repo` access to both `curl` and the install script:
 
 ```bash
-GITHUB_TOKEN=... curl -fsSL https://raw.githubusercontent.com/PerfectPan/ocvm/main/install.sh | sh
+curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" \
+  https://raw.githubusercontent.com/PerfectPan/ocvm/main/install.sh | \
+  GITHUB_TOKEN="$GITHUB_TOKEN" sh
 ```
 
 ## Docker E2E
@@ -46,4 +48,3 @@ Use Docker to validate real npm OpenClaw install behavior without touching the h
 ```
 
 The container sets `OCVM_HOME=/tmp/ocvm-home`, installs from npm, and runs `ocvm exec -- openclaw --version`.
-
