@@ -4,6 +4,8 @@ set -eu
 REPO="${OCVM_REPO:-PerfectPan/ocvm}"
 INSTALL_DIR="${OCVM_INSTALL_DIR:-$HOME/.local/bin}"
 API_BASE="${GITHUB_API_URL:-https://api.github.com}"
+INSTALLER_VERSION="v0.1.1"
+VERSION="${OCVM_VERSION:-$INSTALLER_VERSION}"
 
 need() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -40,12 +42,19 @@ esac
 target="${arch}-${os}"
 asset="ocvm-${target}.tar.gz"
 
+if [ "$VERSION" = "latest" ]; then
+  api_url="${API_BASE}/repos/${REPO}/releases/latest"
+else
+  api_url="${API_BASE}/repos/${REPO}/releases/tags/${VERSION}"
+fi
+
 if [ "${OCVM_INSTALL_DRY_RUN:-}" = "1" ]; then
   cat <<EOF
 repo=${REPO}
+version=${VERSION}
 target=${target}
 asset=${asset}
-api_url=${API_BASE}/repos/${REPO}/releases/latest
+api_url=${api_url}
 install_dir=${INSTALL_DIR}
 EOF
   exit 0
@@ -60,7 +69,6 @@ if [ -n "${GITHUB_TOKEN:-}" ]; then
   auth_header="Authorization: Bearer ${GITHUB_TOKEN}"
 fi
 
-api_url="${API_BASE}/repos/${REPO}/releases/latest"
 release_json="$tmp/release.json"
 
 if [ -n "$auth_header" ]; then

@@ -201,7 +201,7 @@ Rollback does not delete unrelated installed versions.
 After a GitHub Release exists:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/PerfectPan/ocvm/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/PerfectPan/ocvm/v0.1.1/install.sh | sh
 ```
 
 ## Docker E2E

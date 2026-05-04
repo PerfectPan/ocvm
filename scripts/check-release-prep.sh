@@ -33,6 +33,9 @@ expect_output "asset=ocvm-x86_64-apple-darwin.tar.gz" \
 expect_output "asset=ocvm-aarch64-apple-darwin.tar.gz" \
   env OCVM_INSTALL_DRY_RUN=1 OCVM_TEST_UNAME_S=Darwin OCVM_TEST_UNAME_M=arm64 ./install.sh
 
+expect_output "api_url=https://api.github.com/repos/PerfectPan/ocvm/releases/tags/v0.1.1" \
+  env OCVM_INSTALL_DRY_RUN=1 OCVM_VERSION=v0.1.1 OCVM_TEST_UNAME_S=Darwin OCVM_TEST_UNAME_M=arm64 ./install.sh
+
 expect_file_text .github/workflows/release.yml "target: x86_64-unknown-linux-gnu"
 expect_file_text .github/workflows/release.yml "target: x86_64-apple-darwin"
 expect_file_text .github/workflows/release.yml "target: aarch64-apple-darwin"
