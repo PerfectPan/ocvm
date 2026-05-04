@@ -47,7 +47,7 @@ jobs:
           cp "target/${{ matrix.target }}/release/ocvm" "dist/${name}/"
           cp README.md LICENSE CHANGELOG.md "dist/${name}/"
           tar -C dist -czf "dist/${name}.tar.gz" "${name}"
-          shasum -a 256 "dist/${name}.tar.gz" > "dist/${name}.tar.gz.sha256"
+          (cd dist && shasum -a 256 "${name}.tar.gz" > "${name}.tar.gz.sha256")
 
       - name: Package Windows artifact
         if: matrix.archive == 'zip'
@@ -59,7 +59,7 @@ jobs:
           Copy-Item README.md,LICENSE,CHANGELOG.md "dist/$name/"
           Compress-Archive -Path "dist/$name/*" -DestinationPath "dist/$name.zip"
           $hash = (Get-FileHash "dist/$name.zip" -Algorithm SHA256).Hash.ToLower()
-          "$hash  dist/$name.zip" | Out-File -FilePath "dist/$name.zip.sha256" -Encoding ascii
+          "$hash  $name.zip" | Out-File -FilePath "dist/$name.zip.sha256" -Encoding ascii
 
       - uses: actions/upload-artifact@v4
         with:
@@ -84,4 +84,3 @@ jobs:
         with:
           files: release-assets/*
           generate_release_notes: true
-
