@@ -1,6 +1,6 @@
 use anyhow::Result;
 use ocvm::config;
-use ocvm::paths::OcvmPaths;
+use ocvm::paths::{executable_path, OcvmPaths};
 use ocvm::project;
 use ocvm::source::{RemoteVersion, SourceProvider};
 use ocvm::version;
@@ -135,7 +135,7 @@ fn install_stages_verifies_and_creates_shim() {
 
     assert_eq!(installed, "2026.3.28");
     assert!(paths.openclaw_bin("2026.3.28").exists());
-    assert!(paths.shims.join("openclaw").exists());
+    assert!(executable_path(paths.shims.join("openclaw")).exists());
     assert_eq!(source.installed_specs.borrow().as_slice(), ["2026.3.28"]);
 }
 
