@@ -4,10 +4,16 @@ version = "0.1.0"
 edition = "2021"
 description = "OpenClaw Version Manager"
 license = "MIT"
-repository = "https://github.com/openclaw/ocvm"
+repository = "https://github.com/PerfectPan/ocvm"
 readme = "README.md"
 keywords = ["openclaw", "version-manager", "cli"]
 categories = ["command-line-utilities", "development-tools"]
+exclude = [
+  "/.github/**",
+  "/docs/plans/**",
+  "/rfcs/**",
+  "/site/**",
+]
 
 [[bin]]
 name = "ocvm"
