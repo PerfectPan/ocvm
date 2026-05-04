@@ -287,6 +287,7 @@ where
     let cmd = iter
         .next()
         .ok_or_else(|| anyhow!("exec requires a command"))?;
+    let cmd = resolve_command_in_active_bin(paths, &resolved.version, cmd.as_ref());
     let path = std::env::var_os("PATH").unwrap_or_default();
     let path = std::env::join_paths(
         std::iter::once(paths.bin_dir(&resolved.version)).chain(std::env::split_paths(&path)),
@@ -302,6 +303,21 @@ where
         .status()
         .context("failed to execute command")?;
     Ok(status.code().unwrap_or(1))
+}
+
+fn resolve_command_in_active_bin(
+    paths: &OcvmPaths,
+    version: &str,
+    command: &OsStr,
+) -> std::ffi::OsString {
+    let command_path = Path::new(command);
+    if command_path.components().count() == 1 {
+        let active_bin_command = executable_path(paths.bin_dir(version).join(command_path));
+        if active_bin_command.exists() {
+            return active_bin_command.into_os_string();
+        }
+    }
+    command.to_os_string()
 }
 
 pub fn doctor(
