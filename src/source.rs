@@ -2,6 +2,8 @@ use crate::config::{load, SourceKind};
 use crate::paths::OcvmPaths;
 use anyhow::{anyhow, Context, Result};
 use serde::Deserialize;
+use sha2::{Digest, Sha256};
+use std::path::Path;
 use std::process::Command;
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
@@ -11,12 +13,17 @@ pub struct RemoteVersion {
     pub tags: Vec<String>,
     #[serde(alias = "tarball", alias = "npm")]
     pub url: Option<String>,
+    #[serde(default, alias = "sha256", alias = "executableSha256")]
+    pub executable_sha256: Option<String>,
 }
 
 pub trait SourceProvider {
     fn resolve_alias(&self, requested: &str) -> Result<String>;
     fn list_remote(&self, channel: Option<&str>) -> Result<Vec<RemoteVersion>>;
-    fn install(&self, version: &str, staging_dir: &std::path::Path) -> Result<()>;
+    fn install(&self, version: &str, staging_dir: &Path) -> Result<()>;
+    fn verify_staged_install(&self, _version: &str, _staging_dir: &Path) -> Result<()> {
+        Ok(())
+    }
 }
 
 pub struct NpmSource {
@@ -72,10 +79,16 @@ impl SourceProvider for NpmSource {
                 .as_str()
                 .ok_or_else(|| anyhow!("npm versions response included a non-string version"))?;
             let mut labels = Vec::new();
-            for tag in ["stable", "latest"] {
+            for tag in ["stable", "latest", "beta"] {
                 if tags.get(tag).and_then(|value| value.as_str()) == Some(version) {
                     labels.push(tag.to_string());
                 }
+            }
+            if !labels.iter().any(|label| label == "stable")
+                && tags.get("stable").is_none()
+                && tags.get("latest").and_then(|value| value.as_str()) == Some(version)
+            {
+                labels.push("stable".to_string());
             }
             if version.contains('-') {
                 labels.push("prerelease".to_string());
@@ -91,13 +104,14 @@ impl SourceProvider for NpmSource {
                     version: version.to_string(),
                     tags: labels,
                     url: None,
+                    executable_sha256: None,
                 });
             }
         }
         Ok(rows)
     }
 
-    fn install(&self, version: &str, staging_dir: &std::path::Path) -> Result<()> {
+    fn install(&self, version: &str, staging_dir: &Path) -> Result<()> {
         let spec = format!("{}@{}", self.package, version);
         let output = Command::new("npm")
             .args(["install", "--prefix"])
@@ -173,7 +187,7 @@ impl SourceProvider for ReleaseSource {
         })
     }
 
-    fn install(&self, version: &str, staging_dir: &std::path::Path) -> Result<()> {
+    fn install(&self, version: &str, staging_dir: &Path) -> Result<()> {
         let version = self
             .versions()?
             .into_iter()
@@ -194,6 +208,35 @@ impl SourceProvider for ReleaseSource {
             Err(anyhow!(
                 "npm install failed: {}",
                 String::from_utf8_lossy(&output.stderr).trim()
+            ))
+        }
+    }
+
+    fn verify_staged_install(&self, version: &str, staging_dir: &Path) -> Result<()> {
+        let Some(expected) = self
+            .versions()?
+            .into_iter()
+            .find(|candidate| candidate.version == version)
+            .and_then(|version| version.executable_sha256)
+        else {
+            return Ok(());
+        };
+
+        let executable = staging_dir
+            .join("node_modules")
+            .join(".bin")
+            .join("openclaw");
+        let bytes = std::fs::read(&executable)
+            .with_context(|| format!("failed to read {}", executable.display()))?;
+        let actual = hex::encode(Sha256::digest(bytes));
+        if actual.eq_ignore_ascii_case(&expected) {
+            Ok(())
+        } else {
+            Err(anyhow!(
+                "checksum mismatch for {}: expected {}, got {}",
+                executable.display(),
+                expected,
+                actual
             ))
         }
     }

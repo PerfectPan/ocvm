@@ -26,6 +26,12 @@ cargo package --allow-dirty
 
 Use `--offline` only when network access is unavailable and the crate cache is sufficient.
 
+For real OpenClaw install checks, prefer the Docker harness:
+
+```bash
+./scripts/e2e-docker.sh
+```
+
 ## Documentation
 
 - Keep `README.md` focused on orientation, quick start, and current user-facing behavior.

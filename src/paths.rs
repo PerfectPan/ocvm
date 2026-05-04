@@ -10,6 +10,7 @@ pub struct OcvmPaths {
     pub shims: PathBuf,
     pub cache: PathBuf,
     pub logs: PathBuf,
+    pub snapshots: PathBuf,
     pub current: PathBuf,
 }
 
@@ -32,6 +33,7 @@ impl OcvmPaths {
             shims: home.join("shims"),
             cache: home.join("cache"),
             logs: home.join("logs"),
+            snapshots: home.join("snapshots"),
             current: home.join("current"),
             home,
         }
@@ -44,6 +46,7 @@ impl OcvmPaths {
             &self.shims,
             &self.cache,
             &self.logs,
+            &self.snapshots,
         ] {
             std::fs::create_dir_all(dir)
                 .with_context(|| format!("failed to create {}", dir.display()))?;

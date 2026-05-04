@@ -135,3 +135,53 @@ fn damaged_default_does_not_block_explicit_healthy_version() {
         .success()
         .stdout(predicate::str::contains("healthy"));
 }
+
+#[test]
+fn init_outputs_shell_helpers() {
+    let home = TempDir::new().unwrap();
+
+    cmd(&home)
+        .args(["init", "zsh"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("ocvm-use"))
+        .stdout(predicate::str::contains("eval \"$"))
+        .stdout(predicate::str::contains("ocvm use"));
+
+    cmd(&home)
+        .args(["init", "fish"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("function ocvm-use"))
+        .stdout(predicate::str::contains("ocvm use $version"));
+}
+
+#[test]
+fn snapshot_and_rollback_work_from_cli() {
+    let home = TempDir::new().unwrap();
+    install_fake(&home, "2026.3.28", "#!/bin/sh\necho old\n");
+    install_fake(&home, "2026.4.01", "#!/bin/sh\necho new\n");
+    cmd(&home).args(["default", "2026.3.28"]).assert().success();
+    cmd(&home).args(["use", "2026.3.28"]).assert().success();
+
+    cmd(&home)
+        .args(["snapshot", "before-upgrade"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("snapshot before-upgrade"));
+
+    cmd(&home).args(["default", "2026.4.01"]).assert().success();
+    cmd(&home).args(["use", "2026.4.01"]).assert().success();
+
+    cmd(&home)
+        .args(["rollback", "before-upgrade"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("rolled back to before-upgrade"));
+
+    cmd(&home)
+        .arg("current")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("version: 2026.3.28"));
+}

@@ -3,9 +3,11 @@ use crate::paths::{path_contains_dir, OcvmPaths};
 use crate::project;
 use crate::source::SourceProvider;
 use anyhow::{anyhow, Context, Result};
+use serde::{Deserialize, Serialize};
 use std::ffi::OsStr;
 use std::path::Path;
 use std::process::{Command, Stdio};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VersionSource {
@@ -30,6 +32,14 @@ impl std::fmt::Display for VersionSource {
 pub struct ResolvedVersion {
     pub version: String,
     pub source: VersionSource,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct Snapshot {
+    pub name: String,
+    pub created_unix_seconds: u64,
+    pub default_version: Option<String>,
+    pub session_version: Option<String>,
 }
 
 pub fn resolve_requested(
@@ -143,6 +153,7 @@ pub fn install(paths: &OcvmPaths, source: &dyn SourceProvider, requested: &str) 
 
     let result = (|| {
         source.install(&version, &staging)?;
+        source.verify_staged_install(&version, &staging)?;
         let output = Command::new(staging.join("node_modules").join(".bin").join("openclaw"))
             .arg("--version")
             .output()
@@ -181,6 +192,55 @@ pub fn install(paths: &OcvmPaths, source: &dyn SourceProvider, requested: &str) 
         let _ = std::fs::remove_dir_all(&backup);
     }
     result
+}
+
+pub fn snapshot(paths: &OcvmPaths, name: Option<&str>) -> Result<Snapshot> {
+    paths.ensure()?;
+    let name = name
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| "latest".to_string());
+    let config = config::load(paths)?;
+    let session_version = std::fs::read_to_string(&paths.current)
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty());
+    let created_unix_seconds = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .context("system time is before UNIX_EPOCH")?
+        .as_secs();
+    let snapshot = Snapshot {
+        name: name.clone(),
+        created_unix_seconds,
+        default_version: config.default_version,
+        session_version,
+    };
+    let file = paths.snapshots.join(format!("{name}.json"));
+    std::fs::write(&file, serde_json::to_string_pretty(&snapshot)? + "\n")
+        .with_context(|| format!("failed to write {}", file.display()))?;
+    Ok(snapshot)
+}
+
+pub fn rollback(paths: &OcvmPaths, name: Option<&str>) -> Result<Snapshot> {
+    paths.ensure()?;
+    let name = name.unwrap_or("latest");
+    let file = paths.snapshots.join(format!("{name}.json"));
+    let raw = std::fs::read_to_string(&file)
+        .with_context(|| format!("failed to read snapshot {}", file.display()))?;
+    let snapshot: Snapshot = serde_json::from_str(&raw)
+        .with_context(|| format!("failed to parse snapshot {}", file.display()))?;
+
+    let mut config = config::load(paths)?;
+    config.default_version = snapshot.default_version.clone();
+    config::save(paths, &config)?;
+
+    match &snapshot.session_version {
+        Some(version) => std::fs::write(&paths.current, format!("{version}\n"))?,
+        None => {
+            let _ = std::fs::remove_file(&paths.current);
+        }
+    }
+
+    Ok(snapshot)
 }
 
 pub fn uninstall(paths: &OcvmPaths, version: &str) -> Result<()> {
