@@ -31,12 +31,6 @@ Users can install the latest release with:
 curl -fsSL https://raw.githubusercontent.com/PerfectPan/ocvm/main/install.sh | sh
 ```
 
-For private repository installs, set a token with `repo` access:
-
-```bash
-GITHUB_TOKEN=... curl -fsSL https://raw.githubusercontent.com/PerfectPan/ocvm/main/install.sh | sh
-```
-
 ## Docker E2E
 
 Use Docker to validate real npm OpenClaw install behavior without touching the host:
@@ -46,4 +40,3 @@ Use Docker to validate real npm OpenClaw install behavior without touching the h
 ```
 
 The container sets `OCVM_HOME=/tmp/ocvm-home`, installs from npm, and runs `ocvm exec -- openclaw --version`.
-

@@ -4,6 +4,8 @@
 
 This is a version manager, not an OpenClaw installer replacement. Installation is the mechanism; reproducible local OpenClaw environments are the product.
 
+Website: https://site-neon-two.vercel.app
+
 ## Status
 
 MVP crate scaffold with the full command surface from the PRD:
@@ -202,8 +204,6 @@ After a GitHub Release exists:
 curl -fsSL https://raw.githubusercontent.com/PerfectPan/ocvm/main/install.sh | sh
 ```
 
-While the repository is private, fetch `install.sh` from an authenticated checkout or provide `GITHUB_TOKEN` to the script for release asset downloads.
-
 ## Docker E2E
 
 Run real npm OpenClaw install validation in Docker instead of on the host:
@@ -214,7 +214,7 @@ Run real npm OpenClaw install validation in Docker instead of on the host:
 
 ## Landing Page
 
-The TanStack Start landing page lives in `site/` and is configured for Vercel preview deployments from this repository:
+The TanStack Start landing page is deployed at https://site-neon-two.vercel.app. Source lives in `site/` and is configured for Vercel deployments from that directory:
 
 ```bash
 npm ci --prefix site

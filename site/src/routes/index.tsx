@@ -90,7 +90,7 @@ OpenClaw 2026.3.28`}</pre>
       <section id="install" className="installBand">
         <div>
           <p className="sectionLabel">Install</p>
-          <h2>One command after the first GitHub Release is published.</h2>
+          <h2>One command once the first GitHub Release is published.</h2>
         </div>
         <pre className="installCommand">
           curl -fsSL https://raw.githubusercontent.com/PerfectPan/ocvm/main/install.sh | sh
