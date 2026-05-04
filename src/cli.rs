@@ -4,7 +4,7 @@ use crate::project;
 use crate::source::provider_from_config;
 use crate::version;
 use anyhow::{anyhow, Result};
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use std::ffi::OsString;
 
 #[derive(Debug, Parser)]
@@ -37,6 +37,12 @@ enum Commands {
     Pin { version: String },
     /// Remove .openclaw-version from the current directory.
     Unpin,
+    /// Print shell integration helpers.
+    Init { shell: Shell },
+    /// Capture current default and session version metadata.
+    Snapshot { name: Option<String> },
+    /// Restore default and session version metadata from a snapshot.
+    Rollback { name: Option<String> },
     /// Execute a command with a resolved or explicit OpenClaw version.
     Exec {
         version: Option<String>,
@@ -45,6 +51,13 @@ enum Commands {
     },
     /// Diagnose ocvm and OpenClaw setup.
     Doctor,
+}
+
+#[derive(Debug, Clone, ValueEnum)]
+enum Shell {
+    Bash,
+    Zsh,
+    Fish,
 }
 
 pub fn run<I, T>(args: I) -> Result<u8>
@@ -127,6 +140,20 @@ where
             println!("removed {}", file.display());
             Ok(0)
         }
+        Commands::Init { shell } => {
+            print!("{}", shell_init(shell));
+            Ok(0)
+        }
+        Commands::Snapshot { name } => {
+            let snapshot = version::snapshot(&paths, name.as_deref())?;
+            println!("snapshot {} saved", snapshot.name);
+            Ok(0)
+        }
+        Commands::Rollback { name } => {
+            let snapshot = version::rollback(&paths, name.as_deref())?;
+            println!("rolled back to {}", snapshot.name);
+            Ok(0)
+        }
         Commands::Exec { version, command } => {
             let explicit = version.as_deref();
             let code = version::exec(&paths, &cwd, explicit, command)?;
@@ -143,6 +170,32 @@ where
                 }
             }
             Ok(if ok { 0 } else { 1 })
+        }
+    }
+}
+
+fn shell_init(shell: Shell) -> &'static str {
+    match shell {
+        Shell::Bash | Shell::Zsh => {
+            r#"ocvm-use() {
+  if [ "$#" -ne 1 ]; then
+    echo "usage: ocvm-use <version>" >&2
+    return 2
+  fi
+  eval "$(ocvm use "$1" | sed -n 's/^Run this in your shell: //p')"
+}
+"#
+        }
+        Shell::Fish => {
+            r#"function ocvm-use
+  if test (count $argv) -ne 1
+    echo "usage: ocvm-use <version>" >&2
+    return 2
+  end
+  set version $argv[1]
+  ocvm use $version | string replace -r '^Run this in your shell: export PATH="([^"]+):\$PATH"$' 'set -gx PATH $1 $PATH' | source
+end
+"#
         }
     }
 }

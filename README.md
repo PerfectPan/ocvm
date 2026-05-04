@@ -20,6 +20,9 @@ ocvm list-remote --channel stable
 ocvm list-remote --channel nightly
 ocvm pin <version>
 ocvm unpin
+ocvm init <zsh|bash|fish>
+ocvm snapshot [name]
+ocvm rollback [name]
 ocvm exec [version] -- <command>
 ocvm doctor
 ```
@@ -68,6 +71,7 @@ By default, `ocvm` stores state under `~/.ocvm`:
     openclaw
   cache/
   logs/
+  snapshots/
 ```
 
 Use `OCVM_HOME` to redirect all state, especially in tests and CI:
@@ -124,6 +128,10 @@ Manifest format:
 
 The release provider also accepts a raw array of version objects. Tarball fields can be named `url`, `tarball`, or `npm`.
 
+The npm provider maps `stable` to the `latest` dist-tag when npm does not define a separate `stable` dist-tag. Project config can override this with `channels.stable`.
+
+Release manifest entries can include `sha256` or `executableSha256`. When present, `ocvm` verifies the staged `openclaw` executable before activation.
+
 ## Shell Setup
 
 Add the shim directory to `PATH`:
@@ -140,6 +148,26 @@ ocvm use 2026.3.28
 
 Then run the printed `export PATH=...` command in your shell.
 
+For helper functions:
+
+```bash
+ocvm init zsh
+ocvm init bash
+ocvm init fish
+```
+
+For example, zsh users can add this to their shell profile:
+
+```bash
+eval "$(ocvm init zsh)"
+```
+
+Then use:
+
+```bash
+ocvm-use 2026.3.28
+```
+
 ## Install Safety
 
 `ocvm install` uses a staging directory, verifies:
@@ -150,6 +178,40 @@ openclaw --version
 
 and only then activates the installed version under `versions/<version>`. If replacing an existing version fails, the previous version is restored from a backup directory.
 
+## Snapshots
+
+Capture the current default and session version metadata:
+
+```bash
+ocvm snapshot before-upgrade
+```
+
+Rollback metadata later:
+
+```bash
+ocvm rollback before-upgrade
+```
+
+Rollback does not delete unrelated installed versions.
+
+## Install
+
+After a GitHub Release exists:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/PerfectPan/ocvm/main/install.sh | sh
+```
+
+While the repository is private, fetch `install.sh` from an authenticated checkout or provide `GITHUB_TOKEN` to the script for release asset downloads.
+
+## Docker E2E
+
+Run real npm OpenClaw install validation in Docker instead of on the host:
+
+```bash
+./scripts/e2e-docker.sh
+```
+
 ## Development
 
 ```bash
@@ -159,5 +221,7 @@ cargo test
 ```
 
 The CI workflow runs the same gates on stable Rust.
+
+Release documentation is in [docs/release.md](./docs/release.md).
 
 Contribution workflow is documented in [CONTRIBUTING.md](./CONTRIBUTING.md). AI delivery and repository hygiene rules are documented in [AGENTS.md](./AGENTS.md), with a Claude-specific entrypoint in [CLAUDE.md](./CLAUDE.md). Security reporting guidance lives in [SECURITY.md](./SECURITY.md).
