@@ -198,18 +198,10 @@ Rollback does not delete unrelated installed versions.
 
 ## Install
 
-After a GitHub Release exists and the repository is public:
+After a GitHub Release exists:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/PerfectPan/ocvm/main/install.sh | sh
-```
-
-While the repository is private, anonymous `raw.githubusercontent.com` URLs return 404. Use an authenticated checkout until the repo is public:
-
-```bash
-git clone git@github.com:PerfectPan/ocvm.git
-cd ocvm
-./install.sh
 ```
 
 ## Docker E2E
