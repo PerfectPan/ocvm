@@ -6,8 +6,8 @@ use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::ffi::OsStr;
 use std::path::Path;
-use std::process::{Command, Stdio};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::process::{Command, Output, Stdio};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VersionSource {
@@ -154,11 +154,9 @@ pub fn install(paths: &OcvmPaths, source: &dyn SourceProvider, requested: &str) 
     let result = (|| {
         source.install(&version, &staging)?;
         source.verify_staged_install(&version, &staging)?;
-        let output = Command::new(executable_path(
+        let output = run_openclaw_version_with_retry(&executable_path(
             staging.join("node_modules").join(".bin").join("openclaw"),
         ))
-        .arg("--version")
-        .output()
         .context("failed to run openclaw --version after install")?;
         if !output.status.success() {
             return Err(anyhow!(
@@ -194,6 +192,33 @@ pub fn install(paths: &OcvmPaths, source: &dyn SourceProvider, requested: &str) 
         let _ = std::fs::remove_dir_all(&backup);
     }
     result
+}
+
+fn run_openclaw_version_with_retry(openclaw: &Path) -> Result<Output, std::io::Error> {
+    const MAX_ATTEMPTS: usize = 8;
+
+    for attempt in 1..=MAX_ATTEMPTS {
+        match Command::new(openclaw).arg("--version").output() {
+            Err(error) if is_text_file_busy(&error) && attempt < MAX_ATTEMPTS => {
+                std::thread::sleep(Duration::from_millis(50));
+            }
+            result => return result,
+        }
+    }
+
+    unreachable!("retry loop always returns on the final attempt")
+}
+
+fn is_text_file_busy(error: &std::io::Error) -> bool {
+    #[cfg(unix)]
+    {
+        error.raw_os_error() == Some(26)
+    }
+    #[cfg(not(unix))]
+    {
+        let _ = error;
+        false
+    }
 }
 
 pub fn snapshot(paths: &OcvmPaths, name: Option<&str>) -> Result<Snapshot> {
@@ -379,4 +404,25 @@ pub fn doctor(
     }
 
     Ok((ok, findings))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_text_file_busy;
+
+    #[test]
+    #[cfg(unix)]
+    fn text_file_busy_errors_are_retryable() {
+        let error = std::io::Error::from_raw_os_error(26);
+
+        assert!(is_text_file_busy(&error));
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn other_io_errors_are_not_text_file_busy() {
+        let error = std::io::Error::from_raw_os_error(2);
+
+        assert!(!is_text_file_busy(&error));
+    }
 }
