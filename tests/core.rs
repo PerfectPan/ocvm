@@ -6,6 +6,7 @@ use ocvm::source::{RemoteVersion, SourceProvider};
 use ocvm::version;
 use std::cell::RefCell;
 use std::fs;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use tempfile::TempDir;
 
@@ -62,6 +63,21 @@ fn fake_openclaw_body(output: &str) -> String {
     }
 }
 
+fn write_fake_openclaw(path: &Path, output: &str) -> Result<()> {
+    let mut file = fs::File::create(path)?;
+    file.write_all(fake_openclaw_body(output).as_bytes())?;
+    file.sync_all()?;
+    drop(file);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mut permissions = fs::metadata(path)?.permissions();
+        permissions.set_mode(0o755);
+        fs::set_permissions(path, permissions)?;
+    }
+    Ok(())
+}
+
 impl SourceProvider for FakeSource {
     fn resolve_alias(&self, requested: &str) -> Result<String> {
         Ok(self
@@ -102,14 +118,7 @@ impl SourceProvider for FakeSource {
         let bin = staging_dir.join("node_modules").join(".bin");
         fs::create_dir_all(&bin)?;
         let openclaw = fake_openclaw_path(bin);
-        fs::write(&openclaw, fake_openclaw_body(version))?;
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            let mut permissions = fs::metadata(&openclaw)?.permissions();
-            permissions.set_mode(0o755);
-            fs::set_permissions(openclaw, permissions)?;
-        }
+        write_fake_openclaw(&openclaw, version)?;
         Ok(())
     }
 

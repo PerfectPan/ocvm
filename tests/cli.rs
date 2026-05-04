@@ -1,6 +1,6 @@
 use assert_cmd::Command;
 use predicates::prelude::*;
-use std::{fs, path::PathBuf};
+use std::{fs, io::Write, path::PathBuf};
 use tempfile::TempDir;
 
 fn cmd(home: &TempDir) -> Command {
@@ -26,6 +26,21 @@ fn fake_openclaw_body(output: &str) -> String {
     }
 }
 
+fn write_fake_openclaw(path: &PathBuf, output: &str) {
+    let mut file = fs::File::create(path).unwrap();
+    file.write_all(fake_openclaw_body(output).as_bytes())
+        .unwrap();
+    file.sync_all().unwrap();
+    drop(file);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mut permissions = fs::metadata(path).unwrap().permissions();
+        permissions.set_mode(0o755);
+        fs::set_permissions(path, permissions).unwrap();
+    }
+}
+
 fn install_fake(home: &TempDir, version: &str, output: &str) {
     let bin = home
         .path()
@@ -36,14 +51,7 @@ fn install_fake(home: &TempDir, version: &str, output: &str) {
         .join(".bin");
     fs::create_dir_all(&bin).unwrap();
     let openclaw = fake_openclaw_path(bin);
-    fs::write(&openclaw, fake_openclaw_body(output)).unwrap();
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        let mut permissions = fs::metadata(&openclaw).unwrap().permissions();
-        permissions.set_mode(0o755);
-        fs::set_permissions(openclaw, permissions).unwrap();
-    }
+    write_fake_openclaw(&openclaw, output);
 }
 
 #[test]
