@@ -15,8 +15,8 @@ need() {
 need curl
 need tar
 
-system="$(uname -s)"
-machine="$(uname -m)"
+system="${OCVM_TEST_UNAME_S:-$(uname -s)}"
+machine="${OCVM_TEST_UNAME_M:-$(uname -m)}"
 
 case "$system" in
   Darwin) os="apple-darwin" ;;
@@ -39,6 +39,18 @@ esac
 
 target="${arch}-${os}"
 asset="ocvm-${target}.tar.gz"
+
+if [ "${OCVM_INSTALL_DRY_RUN:-}" = "1" ]; then
+  cat <<EOF
+repo=${REPO}
+target=${target}
+asset=${asset}
+api_url=${API_BASE}/repos/${REPO}/releases/latest
+install_dir=${INSTALL_DIR}
+EOF
+  exit 0
+fi
+
 tmp="${TMPDIR:-/tmp}/ocvm-install.$$"
 mkdir -p "$tmp"
 trap 'rm -rf "$tmp"' EXIT INT TERM
