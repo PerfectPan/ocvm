@@ -17,18 +17,24 @@ cargo package --allow-dirty
 3. Create and push a version tag:
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.1.1
+git push origin v0.1.1
 ```
 
 The `Release` workflow builds platform binaries, packages archives, generates SHA256 checksum files, and creates a GitHub Release.
 
 ## Install Script
 
-Users can install the latest release with:
+Users can install a specific release with:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/PerfectPan/ocvm/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/PerfectPan/ocvm/v0.1.1/install.sh | sh
+```
+
+Override `OCVM_VERSION` to install a different release:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/PerfectPan/ocvm/v0.1.1/install.sh | OCVM_VERSION=latest sh
 ```
 
 ## Docker E2E
