@@ -1,5 +1,5 @@
 use crate::config;
-use crate::paths::{path_contains_dir, OcvmPaths};
+use crate::paths::{executable_path, path_contains_dir, OcvmPaths};
 use crate::project;
 use crate::source::SourceProvider;
 use anyhow::{anyhow, Context, Result};
@@ -154,10 +154,12 @@ pub fn install(paths: &OcvmPaths, source: &dyn SourceProvider, requested: &str) 
     let result = (|| {
         source.install(&version, &staging)?;
         source.verify_staged_install(&version, &staging)?;
-        let output = Command::new(staging.join("node_modules").join(".bin").join("openclaw"))
-            .arg("--version")
-            .output()
-            .context("failed to run openclaw --version after install")?;
+        let output = Command::new(executable_path(
+            staging.join("node_modules").join(".bin").join("openclaw"),
+        ))
+        .arg("--version")
+        .output()
+        .context("failed to run openclaw --version after install")?;
         if !output.status.success() {
             return Err(anyhow!(
                 "openclaw --version failed: {}",

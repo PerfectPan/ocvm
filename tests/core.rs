@@ -6,7 +6,7 @@ use ocvm::source::{RemoteVersion, SourceProvider};
 use ocvm::version;
 use std::cell::RefCell;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use tempfile::TempDir;
 
 struct FakeSource {
@@ -43,6 +43,22 @@ impl FakeSource {
             fail_verify: false,
             installed_specs: RefCell::new(Vec::new()),
         }
+    }
+}
+
+fn fake_openclaw_path(bin: PathBuf) -> PathBuf {
+    if cfg!(windows) {
+        bin.join("openclaw.cmd")
+    } else {
+        bin.join("openclaw")
+    }
+}
+
+fn fake_openclaw_body(output: &str) -> String {
+    if cfg!(windows) {
+        format!("@echo off\r\necho {output}\r\n")
+    } else {
+        format!("#!/bin/sh\necho {output}\n")
     }
 }
 
@@ -85,8 +101,8 @@ impl SourceProvider for FakeSource {
         self.installed_specs.borrow_mut().push(version.to_string());
         let bin = staging_dir.join("node_modules").join(".bin");
         fs::create_dir_all(&bin)?;
-        let openclaw = bin.join("openclaw");
-        fs::write(&openclaw, format!("#!/bin/sh\necho {version}\n"))?;
+        let openclaw = fake_openclaw_path(bin);
+        fs::write(&openclaw, fake_openclaw_body(version))?;
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;

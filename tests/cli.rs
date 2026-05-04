@@ -1,6 +1,6 @@
 use assert_cmd::Command;
 use predicates::prelude::*;
-use std::fs;
+use std::{fs, path::PathBuf};
 use tempfile::TempDir;
 
 fn cmd(home: &TempDir) -> Command {
@@ -10,7 +10,23 @@ fn cmd(home: &TempDir) -> Command {
     command
 }
 
-fn install_fake(home: &TempDir, version: &str, body: &str) {
+fn fake_openclaw_path(bin: PathBuf) -> PathBuf {
+    if cfg!(windows) {
+        bin.join("openclaw.cmd")
+    } else {
+        bin.join("openclaw")
+    }
+}
+
+fn fake_openclaw_body(output: &str) -> String {
+    if cfg!(windows) {
+        format!("@echo off\r\necho {output}\r\n")
+    } else {
+        format!("#!/bin/sh\necho {output}\n")
+    }
+}
+
+fn install_fake(home: &TempDir, version: &str, output: &str) {
     let bin = home
         .path()
         .join("home")
@@ -19,8 +35,8 @@ fn install_fake(home: &TempDir, version: &str, body: &str) {
         .join("node_modules")
         .join(".bin");
     fs::create_dir_all(&bin).unwrap();
-    let openclaw = bin.join("openclaw");
-    fs::write(&openclaw, body).unwrap();
+    let openclaw = fake_openclaw_path(bin);
+    fs::write(&openclaw, fake_openclaw_body(output)).unwrap();
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
@@ -44,8 +60,8 @@ fn help_is_available_without_initializing_home() {
 #[test]
 fn default_current_list_use_and_uninstall_work_on_local_versions() {
     let home = TempDir::new().unwrap();
-    install_fake(&home, "2026.3.28", "#!/bin/sh\necho 2026.3.28\n");
-    install_fake(&home, "2026.4.01", "#!/bin/sh\necho 2026.4.01\n");
+    install_fake(&home, "2026.3.28", "2026.3.28");
+    install_fake(&home, "2026.4.01", "2026.4.01");
 
     cmd(&home).args(["default", "2026.3.28"]).assert().success();
     cmd(&home)
@@ -86,8 +102,8 @@ fn default_current_list_use_and_uninstall_work_on_local_versions() {
 #[test]
 fn project_pin_wins_and_exec_explicit_does_not_change_default() {
     let home = TempDir::new().unwrap();
-    install_fake(&home, "2026.3.28", "#!/bin/sh\necho default\n");
-    install_fake(&home, "2026.4.01", "#!/bin/sh\necho explicit\n");
+    install_fake(&home, "2026.3.28", "default");
+    install_fake(&home, "2026.4.01", "explicit");
     cmd(&home).args(["default", "2026.3.28"]).assert().success();
 
     let project = home.path().join("project");
@@ -127,7 +143,7 @@ fn damaged_default_does_not_block_explicit_healthy_version() {
             .join(".bin"),
     )
     .unwrap();
-    install_fake(&home, "2026.4.01", "#!/bin/sh\necho healthy\n");
+    install_fake(&home, "2026.4.01", "healthy");
     cmd(&home).args(["default", "2026.3.28"]).assert().success();
     cmd(&home)
         .args(["exec", "2026.4.01", "--", "openclaw"])
@@ -159,8 +175,8 @@ fn init_outputs_shell_helpers() {
 #[test]
 fn snapshot_and_rollback_work_from_cli() {
     let home = TempDir::new().unwrap();
-    install_fake(&home, "2026.3.28", "#!/bin/sh\necho old\n");
-    install_fake(&home, "2026.4.01", "#!/bin/sh\necho new\n");
+    install_fake(&home, "2026.3.28", "old");
+    install_fake(&home, "2026.4.01", "new");
     cmd(&home).args(["default", "2026.3.28"]).assert().success();
     cmd(&home).args(["use", "2026.3.28"]).assert().success();
 
