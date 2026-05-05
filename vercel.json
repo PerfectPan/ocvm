@@ -1,0 +1,5 @@
+{
+  "framework": null,
+  "installCommand": "cd site && npm ci",
+  "buildCommand": "cd site && npm run build && rm -rf ../.vercel && cp -R .vercel ../.vercel"
+}

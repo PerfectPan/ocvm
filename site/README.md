@@ -37,8 +37,12 @@ Deploy the `site/` directory with Vercel. The site-specific `vercel.json` uses
 For GitHub-backed automatic deployments:
 
 - Import or connect `PerfectPan/ocvm` in Vercel.
-- Set the Vercel project Root Directory to `site`.
 - Use `main` as the production branch.
 - Assign `ocvm.vercel.app` to the project production domain.
+- Keep the repository-root `vercel.json` when the Vercel project is connected
+  at the repository root. It runs the site install/build commands and copies
+  `site/.vercel/output` to the root `.vercel/output` expected by Vercel.
+- If the Vercel project Root Directory is changed to `site`, the site-local
+  `vercel.json` is enough and the root build wrapper is not used.
 - Keep the GitHub `CI` workflow's `site` job required so proposed changes
   exercise the same site build command before merge.

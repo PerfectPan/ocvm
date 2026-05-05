@@ -222,9 +222,11 @@ npm run build --prefix site
 ```
 
 For automatic Vercel deployments from GitHub, connect the Vercel project to
-`PerfectPan/ocvm`, set the project Root Directory to `site`, and track `main`
-as the production branch. Pull requests receive preview deployments; merges to
-`main` publish production deployments for `ocvm.vercel.app`.
+`PerfectPan/ocvm` and track `main` as the production branch. The root
+`vercel.json` installs and builds the `site/` app, then places Nitro's Vercel
+output where Vercel expects it for a repository-root project. Pull requests
+receive preview deployments; merges to `main` publish production deployments
+for `ocvm.vercel.app`.
 
 ## Development
 
