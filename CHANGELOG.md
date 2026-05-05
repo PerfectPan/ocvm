@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Updated landing page and crate metadata for `https://ocvm.vercel.app`.
+- Clarified the site Install section around the pinned `v0.1.1` release.
+- Added a GitHub Actions site build gate for the Vercel app in `site/`.
+
 ## 0.1.0
 
 - Initial Rust CLI project for `ocvm`.

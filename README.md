@@ -4,7 +4,7 @@
 
 This is a version manager, not an OpenClaw installer replacement. Installation is the mechanism; reproducible local OpenClaw environments are the product.
 
-Website: https://site-neon-two.vercel.app
+Website: https://ocvm.vercel.app
 
 ## Status
 
@@ -214,12 +214,17 @@ Run real npm OpenClaw install validation in Docker instead of on the host:
 
 ## Landing Page
 
-The TanStack Start landing page is deployed at https://site-neon-two.vercel.app. Source lives in `site/` and is configured for Vercel deployments from that directory:
+The TanStack Start landing page is deployed at https://ocvm.vercel.app. Source lives in `site/` and is configured for Vercel deployments from that directory:
 
 ```bash
 npm ci --prefix site
 npm run build --prefix site
 ```
+
+For automatic Vercel deployments from GitHub, connect the Vercel project to
+`PerfectPan/ocvm`, set the project Root Directory to `site`, and track `main`
+as the production branch. Pull requests receive preview deployments; merges to
+`main` publish production deployments for `ocvm.vercel.app`.
 
 ## Development
 

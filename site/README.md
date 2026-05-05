@@ -2,6 +2,8 @@
 
 TanStack Start landing page for the OpenClaw Version Manager.
 
+Production URL: https://ocvm.vercel.app
+
 ## Development
 
 ```bash
@@ -31,3 +33,12 @@ docker run --rm -u "$(id -u):$(id -g)" \
 
 Deploy the `site/` directory with Vercel. The site-specific `vercel.json` uses
 `npm ci` and `npm run build`.
+
+For GitHub-backed automatic deployments:
+
+- Import or connect `PerfectPan/ocvm` in Vercel.
+- Set the Vercel project Root Directory to `site`.
+- Use `main` as the production branch.
+- Assign `ocvm.vercel.app` to the project production domain.
+- Keep the GitHub `CI` workflow's `site` job required so proposed changes
+  exercise the same site build command before merge.

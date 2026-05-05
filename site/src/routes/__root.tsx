@@ -3,6 +3,11 @@ import type { ReactNode } from 'react'
 
 import appCss from '../styles.css?url'
 
+const siteUrl = 'https://ocvm.vercel.app/'
+const siteTitle = 'ocvm - OpenClaw Version Manager'
+const siteDescription =
+  'ocvm installs, pins, switches, snapshots, and verifies OpenClaw versions for reproducible local projects.'
+
 export const Route = createRootRoute({
   head: () => ({
     meta: [
@@ -14,18 +19,41 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'ocvm - OpenClaw Version Manager',
+        title: siteTitle,
       },
       {
         name: 'description',
-        content:
-          'ocvm installs, pins, switches, snapshots, and verifies OpenClaw versions for reproducible local projects.',
+        content: siteDescription,
+      },
+      {
+        property: 'og:title',
+        content: siteTitle,
+      },
+      {
+        property: 'og:description',
+        content: siteDescription,
+      },
+      {
+        property: 'og:url',
+        content: siteUrl,
+      },
+      {
+        property: 'og:type',
+        content: 'website',
+      },
+      {
+        name: 'twitter:card',
+        content: 'summary',
       },
     ],
     links: [
       {
         rel: 'stylesheet',
         href: appCss,
+      },
+      {
+        rel: 'canonical',
+        href: siteUrl,
       },
       {
         rel: 'icon',
