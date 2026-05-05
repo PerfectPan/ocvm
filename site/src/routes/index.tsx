@@ -2,6 +2,10 @@ import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({ component: Home })
 
+const currentRelease = 'v0.1.1'
+const installCommand = `curl -fsSL \\
+  https://raw.githubusercontent.com/PerfectPan/ocvm/${currentRelease}/install.sh | sh`
+
 const features = [
   {
     title: 'Project pinning',
@@ -88,12 +92,27 @@ OpenClaw 2026.3.28`}</pre>
       </section>
 
       <section id="install" className="installBand">
-        <div>
+        <div className="installText">
           <p className="sectionLabel">Install</p>
-          <h2>Install a pinned release with one command.</h2>
+          <h2>Install the current pinned release.</h2>
+          <p>
+            The installer downloads the {currentRelease} GitHub Release asset
+            for your platform, verifies the checksum when one is available, and
+            installs <code>ocvm</code> into your local bin directory.
+          </p>
+          <div className="installActions">
+            <a
+              href={`https://github.com/PerfectPan/ocvm/releases/tag/${currentRelease}`}
+            >
+              View release
+            </a>
+            <a href="https://github.com/PerfectPan/ocvm/blob/main/docs/release.md">
+              Release guide
+            </a>
+          </div>
         </div>
         <pre className="installCommand">
-          curl -fsSL https://raw.githubusercontent.com/PerfectPan/ocvm/v0.1.1/install.sh | sh
+          <code>{installCommand}</code>
         </pre>
       </section>
 
