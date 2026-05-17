@@ -198,11 +198,25 @@ Rollback does not delete unrelated installed versions.
 
 ## Install
 
-After a GitHub Release exists:
+After a GitHub Release exists, publish `install.sh` to a stable HTTPS path. The
+current site publishes the installer as a static asset, and the same layout can
+be mirrored to OSS or placed behind a CDN:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/PerfectPan/ocvm/v0.1.1/install.sh | sh
+curl -fsSL https://ocvm.vercel.app/ocvm/install.sh | sh
 ```
+
+For repeatable automation, pin the binary release with `OCVM_VERSION` while
+using the same installer script:
+
+```bash
+curl -fsSL https://ocvm.vercel.app/ocvm/install.sh | OCVM_VERSION=v0.1.1 sh
+```
+
+Maintainers set `OCVM_INSTALLER_BASE_URL` to the published OSS/CDN prefix during
+release preparation when mirroring the same layout outside Vercel. Future
+releases only need to update the stable installer script when the script itself
+changes or when its default pinned release changes.
 
 ## Docker E2E
 
@@ -212,9 +226,11 @@ Run real npm OpenClaw install validation in Docker instead of on the host:
 ./scripts/e2e-docker.sh
 ```
 
-## Landing Page
+## Website and Docs
 
-The TanStack Start landing page is deployed at https://ocvm.vercel.app. Source lives in `site/` and is configured for Vercel deployments from that directory:
+The TanStack Start landing page and documentation site are deployed at
+https://ocvm.vercel.app. Source lives in `site/` and is configured for Vercel
+deployments from that directory:
 
 ```bash
 npm ci --prefix site

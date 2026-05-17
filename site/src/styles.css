@@ -39,7 +39,11 @@ main {
   align-items: center;
   justify-content: space-between;
   max-width: 1180px;
-  margin: 0 auto 72px;
+  margin: 0 auto;
+}
+
+.topbarHero {
+  margin-bottom: 72px;
 }
 
 .brand {
@@ -48,10 +52,24 @@ main {
 }
 
 .navlinks {
+  align-items: center;
   display: flex;
-  gap: 18px;
+  flex-wrap: wrap;
+  gap: 14px 18px;
   color: #3f453c;
   font-size: 0.95rem;
+}
+
+.navlinks a {
+  line-height: 1;
+}
+
+.starLink {
+  border: 1px solid #171717;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.48);
+  font-weight: 750;
 }
 
 .heroGrid {
@@ -274,6 +292,129 @@ h2 {
   font-size: 1.04rem;
 }
 
+.docsPage {
+  min-height: 100vh;
+  background: #e8ece2;
+  color: #171717;
+}
+
+.docsTopbar {
+  max-width: 1120px;
+  padding: 28px clamp(20px, 4vw, 72px);
+}
+
+.docsHero,
+.docsGrid,
+.docsSection,
+.docsArticle {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-inline: clamp(20px, 4vw, 72px);
+}
+
+.docsHero {
+  padding-top: 54px;
+  padding-bottom: 34px;
+  background: #fffdf7;
+}
+
+.docsHero h1,
+.docsArticle h1 {
+  max-width: 840px;
+  margin-bottom: 22px;
+  font-size: clamp(3rem, 8vw, 5.4rem);
+  line-height: 0.94;
+}
+
+.docsHero p:not(.sectionLabel),
+.docsArticle > p,
+.docsSection p,
+.docTile p,
+.configList dd {
+  color: #4a5047;
+  font-size: 1.03rem;
+  line-height: 1.66;
+}
+
+.docsHero p:not(.sectionLabel),
+.docsArticle > p {
+  max-width: 720px;
+}
+
+.docsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  padding-block: 24px 54px;
+  background: #c8cec0;
+}
+
+.docTile {
+  min-height: 210px;
+  border: 1px solid #c8cec0;
+  border-radius: 8px;
+  padding: 24px;
+  background: #f5f2ea;
+}
+
+.docTile h2,
+.docsSection h2,
+.docsArticle h2 {
+  margin-bottom: 12px;
+  font-size: 1.35rem;
+  line-height: 1.18;
+}
+
+.docsSection,
+.docsArticle {
+  padding-top: 40px;
+  padding-bottom: 76px;
+  background: #fffdf7;
+}
+
+.docsSection {
+  border-top: 1px solid #d8ddd0;
+}
+
+.docsSection pre,
+.docsArticle pre {
+  margin: 20px 0;
+  overflow-x: auto;
+  border: 1px solid #2d302b;
+  border-radius: 8px;
+  padding: 22px;
+  background: #111512;
+  color: #d8f5cc;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.92rem;
+  line-height: 1.58;
+}
+
+.docsArticle code,
+.docsSection code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+.commandGroup {
+  margin-top: 34px;
+}
+
+.configList {
+  display: grid;
+  gap: 18px;
+  max-width: 820px;
+  margin: 32px 0 0;
+}
+
+.configList dt {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-weight: 800;
+}
+
+.configList dd {
+  margin: 6px 0 0;
+}
+
 @media (max-width: 860px) {
   .hero {
     min-height: auto;
@@ -282,7 +423,7 @@ h2 {
     background-position: right 18px top 78px;
   }
 
-  .topbar {
+  .topbarHero {
     margin-bottom: 56px;
   }
 
@@ -308,11 +449,22 @@ h2 {
     font-size: 0.88rem;
   }
 
-  .features {
+  .features,
+  .docsGrid {
     grid-template-columns: 1fr;
   }
 
   .feature {
+    min-height: auto;
+  }
+
+  .docsGrid {
+    gap: 1px;
+    padding-block: 1px;
+  }
+
+  .docTile {
+    border-radius: 0;
     min-height: auto;
   }
 }
@@ -342,7 +494,12 @@ h2 {
   }
 
   .installBand,
-  .workflow {
+  .workflow,
+  .docsHero,
+  .docsGrid,
+  .docsSection,
+  .docsArticle,
+  .docsTopbar {
     padding-inline: 16px;
   }
 
