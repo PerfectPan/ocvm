@@ -4,5 +4,6 @@
 /.openclaw-version
 .omx/
 .playwright-cli/
+site/public/ocvm/
 *.log
 .DS_Store

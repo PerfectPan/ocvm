@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Replaced GitHub raw installer guidance with a static installer path that can be mirrored to OSS/CDN.
+- Added website documentation routes for installation, commands, configuration, and release sources.
+- Added GitHub and documentation navigation to the landing page.
 - Updated landing page and crate metadata for `https://ocvm.vercel.app`.
 - Clarified the site Install section around the pinned `v0.1.1` release.
 - Added a GitHub Actions site build gate for the Vercel app in `site/`.
