@@ -9,22 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as DocsRouteImport } from './routes/docs'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DocsIndexRouteImport } from './routes/docs.index'
-import { Route as DocsReleaseSourcesRouteImport } from './routes/docs.release-sources'
-import { Route as DocsInstallationRouteImport } from './routes/docs.installation'
-import { Route as DocsConfigurationRouteImport } from './routes/docs.configuration'
 import { Route as DocsCommandsRouteImport } from './routes/docs.commands'
+import { Route as DocsConfigurationRouteImport } from './routes/docs.configuration'
+import { Route as DocsInstallationRouteImport } from './routes/docs.installation'
+import { Route as DocsReleaseSourcesRouteImport } from './routes/docs.release-sources'
 
-const DocsRoute = DocsRouteImport.update({
-  id: '/docs',
-  path: '/docs',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocsIndexRoute = DocsIndexRouteImport.update({
@@ -32,14 +32,9 @@ const DocsIndexRoute = DocsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DocsRoute,
 } as any)
-const DocsReleaseSourcesRoute = DocsReleaseSourcesRouteImport.update({
-  id: '/release-sources',
-  path: '/release-sources',
-  getParentRoute: () => DocsRoute,
-} as any)
-const DocsInstallationRoute = DocsInstallationRouteImport.update({
-  id: '/installation',
-  path: '/installation',
+const DocsCommandsRoute = DocsCommandsRouteImport.update({
+  id: '/commands',
+  path: '/commands',
   getParentRoute: () => DocsRoute,
 } as any)
 const DocsConfigurationRoute = DocsConfigurationRouteImport.update({
@@ -47,9 +42,14 @@ const DocsConfigurationRoute = DocsConfigurationRouteImport.update({
   path: '/configuration',
   getParentRoute: () => DocsRoute,
 } as any)
-const DocsCommandsRoute = DocsCommandsRouteImport.update({
-  id: '/commands',
-  path: '/commands',
+const DocsInstallationRoute = DocsInstallationRouteImport.update({
+  id: '/installation',
+  path: '/installation',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsReleaseSourcesRoute = DocsReleaseSourcesRouteImport.update({
+  id: '/release-sources',
+  path: '/release-sources',
   getParentRoute: () => DocsRoute,
 } as any)
 
@@ -116,18 +116,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/docs': {
-      id: '/docs'
-      path: '/docs'
-      fullPath: '/docs'
-      preLoaderRoute: typeof DocsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/docs/': {
@@ -137,18 +137,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DocsIndexRouteImport
       parentRoute: typeof DocsRoute
     }
-    '/docs/release-sources': {
-      id: '/docs/release-sources'
-      path: '/release-sources'
-      fullPath: '/docs/release-sources'
-      preLoaderRoute: typeof DocsReleaseSourcesRouteImport
-      parentRoute: typeof DocsRoute
-    }
-    '/docs/installation': {
-      id: '/docs/installation'
-      path: '/installation'
-      fullPath: '/docs/installation'
-      preLoaderRoute: typeof DocsInstallationRouteImport
+    '/docs/commands': {
+      id: '/docs/commands'
+      path: '/commands'
+      fullPath: '/docs/commands'
+      preLoaderRoute: typeof DocsCommandsRouteImport
       parentRoute: typeof DocsRoute
     }
     '/docs/configuration': {
@@ -158,11 +151,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DocsConfigurationRouteImport
       parentRoute: typeof DocsRoute
     }
-    '/docs/commands': {
-      id: '/docs/commands'
-      path: '/commands'
-      fullPath: '/docs/commands'
-      preLoaderRoute: typeof DocsCommandsRouteImport
+    '/docs/installation': {
+      id: '/docs/installation'
+      path: '/installation'
+      fullPath: '/docs/installation'
+      preLoaderRoute: typeof DocsInstallationRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/release-sources': {
+      id: '/docs/release-sources'
+      path: '/release-sources'
+      fullPath: '/docs/release-sources'
+      preLoaderRoute: typeof DocsReleaseSourcesRouteImport
       parentRoute: typeof DocsRoute
     }
   }
