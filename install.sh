@@ -4,7 +4,7 @@ set -eu
 REPO="${OCVM_REPO:-PerfectPan/ocvm}"
 INSTALL_DIR="${OCVM_INSTALL_DIR:-$HOME/.local/bin}"
 API_BASE="${GITHUB_API_URL:-https://api.github.com}"
-INSTALLER_VERSION="v0.1.1"
+INSTALLER_VERSION="v0.2.0"
 VERSION="${OCVM_VERSION:-$INSTALLER_VERSION}"
 
 need() {

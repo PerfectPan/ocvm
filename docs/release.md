@@ -14,11 +14,14 @@ cargo test
 cargo package --allow-dirty
 ```
 
-3. Create and push a version tag:
+3. Bump the version in `Cargo.toml`, `install.sh`, `site/src/content.ts`, and
+   `scripts/check-release-prep.sh`. There is no automatic version bump; the
+   `Release` workflow only builds the tag that is pushed.
+4. Create and push a version tag:
 
 ```bash
-git tag v0.1.1
-git push origin v0.1.1
+git tag v0.2.0
+git push origin v0.2.0
 ```
 
 The `Release` workflow builds platform binaries, packages archives, generates SHA256 checksum files, and creates a GitHub Release.
@@ -36,7 +39,7 @@ export OCVM_INSTALLER_BASE_URL="https://ocvm.vercel.app/ocvm"
 curl -fsSL "$OCVM_INSTALLER_BASE_URL/install.sh" | sh
 
 # Repeatable install pinned to a specific binary release.
-curl -fsSL "$OCVM_INSTALLER_BASE_URL/install.sh" | OCVM_VERSION=v0.1.1 sh
+curl -fsSL "$OCVM_INSTALLER_BASE_URL/install.sh" | OCVM_VERSION=v0.2.0 sh
 ```
 
 Override `OCVM_VERSION` to install a different release:
