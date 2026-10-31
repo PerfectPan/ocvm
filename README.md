@@ -228,7 +228,7 @@ For repeatable automation, pin the binary release with `OCVM_VERSION` while
 using the same installer script:
 
 ```bash
-curl -fsSL https://ocvm.vercel.app/ocvm/install.sh | OCVM_VERSION=v0.1.1 sh
+curl -fsSL https://ocvm.vercel.app/ocvm/install.sh | OCVM_VERSION=v0.2.0 sh
 ```
 
 Maintainers set `OCVM_INSTALLER_BASE_URL` to the published OSS/CDN prefix during

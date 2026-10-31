@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.0 - 2026-10-31
+
 - Added `beta` and `extended-stable` channel resolution, including support for the npm `extended-stable` dist-tag.
 - Resolved channel names to concrete versions before install so defaults, pins, and `ocvm list` stay reproducible.
 - Added Node.js runtime checks to install and `doctor` for OpenClaw's current Node 24/26/27 requirements, including prerelease rejection for Node 24/26.

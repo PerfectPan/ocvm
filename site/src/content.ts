@@ -1,4 +1,4 @@
-export const currentRelease = 'v0.1.1'
+export const currentRelease = 'v0.2.0'
 
 export const repositoryUrl = 'https://github.com/PerfectPan/ocvm'
 export const releasesUrl = `${repositoryUrl}/releases`
