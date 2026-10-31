@@ -25,16 +25,33 @@ The `Release` workflow builds platform binaries, packages archives, generates SH
 
 ## Install Script
 
-Users can install a specific release with:
+Publish the installer to object storage or a CDN after the GitHub Release is
+created. Use one stable script path for onboarding and pin the binary release
+with `OCVM_VERSION` when automation needs repeatable installs:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/PerfectPan/ocvm/v0.1.1/install.sh | sh
+export OCVM_INSTALLER_BASE_URL="https://ocvm.vercel.app/ocvm"
+
+# Stable installer path for the current release.
+curl -fsSL "$OCVM_INSTALLER_BASE_URL/install.sh" | sh
+
+# Repeatable install pinned to a specific binary release.
+curl -fsSL "$OCVM_INSTALLER_BASE_URL/install.sh" | OCVM_VERSION=v0.1.1 sh
 ```
 
 Override `OCVM_VERSION` to install a different release:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/PerfectPan/ocvm/v0.1.1/install.sh | OCVM_VERSION=latest sh
+curl -fsSL "$OCVM_INSTALLER_BASE_URL/install.sh" | OCVM_VERSION=latest sh
+```
+
+GitHub raw content can remain a maintainer fallback while testing release tags,
+but it should not be the primary user-facing install command.
+
+For an OSS bucket, mirror the same files and replace the prefix:
+
+```text
+ocvm/install.sh
 ```
 
 ## Docker E2E

@@ -1,10 +1,17 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/')({ component: Home })
+import {
+  currentRelease,
+  currentReleaseUrl,
+  docsUrl,
+  githubStarsLabel,
+  githubStarsText,
+  installCommand,
+  releasesUrl,
+  repositoryUrl,
+} from '../content'
 
-const currentRelease = 'v0.1.1'
-const installCommand = `curl -fsSL \\
-  https://raw.githubusercontent.com/PerfectPan/ocvm/${currentRelease}/install.sh | sh`
+export const Route = createFileRoute('/')({ component: Home })
 
 const features = [
   {
@@ -37,14 +44,15 @@ function Home() {
   return (
     <main>
       <section className="hero">
-        <nav className="topbar" aria-label="Primary">
-          <a className="brand" href="https://github.com/PerfectPan/ocvm">
+        <nav className="topbar topbarHero" aria-label="Primary">
+          <a className="brand" href={repositoryUrl}>
             ocvm
           </a>
           <div className="navlinks">
-            <a href="https://github.com/PerfectPan/ocvm/releases">Releases</a>
-            <a href="https://github.com/PerfectPan/ocvm/blob/main/docs/release.md">
-              Docs
+            <a href={docsUrl}>Manual</a>
+            <a href={releasesUrl}>Releases</a>
+            <a className="starLink" href={repositoryUrl} aria-label={githubStarsLabel}>
+              {githubStarsText}
             </a>
           </div>
         </nav>
@@ -62,11 +70,8 @@ function Home() {
               <a className="primaryAction" href="#install">
                 Install
               </a>
-              <a
-                className="secondaryAction"
-                href="https://github.com/PerfectPan/ocvm"
-              >
-                GitHub
+              <a className="secondaryAction" href={docsUrl}>
+                Manual
               </a>
             </div>
           </div>
@@ -101,14 +106,10 @@ OpenClaw 2026.3.28`}</pre>
             installs <code>ocvm</code> into your local bin directory.
           </p>
           <div className="installActions">
-            <a
-              href={`https://github.com/PerfectPan/ocvm/releases/tag/${currentRelease}`}
-            >
+            <a href={currentReleaseUrl}>
               View release
             </a>
-            <a href="https://github.com/PerfectPan/ocvm/blob/main/docs/release.md">
-              Release guide
-            </a>
+            <a href={docsUrl}>User manual</a>
           </div>
         </div>
         <pre className="installCommand">
