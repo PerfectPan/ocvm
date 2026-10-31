@@ -239,6 +239,76 @@ fn stable_alias_can_fallback_to_latest_when_source_has_no_stable() {
 }
 
 #[test]
+fn beta_and_extended_stable_aliases_resolve_to_concrete_versions() {
+    let tmp = TempDir::new().unwrap();
+    let paths = paths(&tmp);
+    let source = FakeSource {
+        versions: vec![
+            RemoteVersion {
+                version: "2026.10.9".to_string(),
+                tags: vec!["latest".to_string(), "stable".to_string()],
+                url: None,
+                executable_sha256: None,
+            },
+            RemoteVersion {
+                version: "2026.10.10-beta.5".to_string(),
+                tags: vec!["beta".to_string(), "prerelease".to_string()],
+                url: None,
+                executable_sha256: None,
+            },
+            RemoteVersion {
+                version: "2026.9.36".to_string(),
+                tags: vec!["extended-stable".to_string()],
+                url: None,
+                executable_sha256: None,
+            },
+        ],
+        fail_install: false,
+        fail_verify: false,
+        installed_specs: RefCell::new(Vec::new()),
+    };
+
+    assert_eq!(
+        version::resolve_requested(&paths, &source, "beta").unwrap(),
+        "2026.10.10-beta.5"
+    );
+    assert_eq!(
+        version::resolve_requested(&paths, &source, "extended-stable").unwrap(),
+        "2026.9.36"
+    );
+    assert_eq!(
+        version::resolve_requested(&paths, &source, "2026.9.36").unwrap(),
+        "2026.9.36"
+    );
+}
+
+#[test]
+fn install_resolves_channel_to_concrete_version_directory() {
+    let tmp = TempDir::new().unwrap();
+    let paths = paths(&tmp);
+    let source = FakeSource {
+        versions: vec![RemoteVersion {
+            version: "2026.10.10-beta.5".to_string(),
+            tags: vec!["beta".to_string()],
+            url: None,
+            executable_sha256: None,
+        }],
+        fail_install: false,
+        fail_verify: false,
+        installed_specs: RefCell::new(Vec::new()),
+    };
+
+    let installed = version::install(&paths, &source, "beta").unwrap();
+
+    assert_eq!(installed, "2026.10.10-beta.5");
+    assert!(paths.openclaw_bin("2026.10.10-beta.5").exists());
+    assert_eq!(
+        source.installed_specs.borrow().as_slice(),
+        ["2026.10.10-beta.5"]
+    );
+}
+
+#[test]
 fn release_manifest_versions_parse_sha256_alias() {
     let parsed: serde_json::Value = serde_json::from_str(
         r#"{

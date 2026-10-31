@@ -4,6 +4,7 @@ use crate::project;
 use crate::source::SourceProvider;
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
 use std::ffi::OsStr;
 use std::path::Path;
 use std::process::{Command, Output, Stdio};
@@ -47,14 +48,14 @@ pub fn resolve_requested(
     source: &dyn SourceProvider,
     requested: &str,
 ) -> Result<String> {
-    if requested == "latest" || requested == "stable" {
-        let config = config::load(paths)?;
-        if let Some(version) = config.channels.get(requested) {
-            return Ok(version.clone());
-        }
-        return source.resolve_alias(requested);
+    let config = config::load(paths)?;
+    if let Some(version) = config.channels.get(requested) {
+        return Ok(version.clone());
     }
-    Ok(requested.to_string())
+    if !crate::source::is_channel_name(requested) {
+        return Ok(requested.to_string());
+    }
+    source.resolve_alias(requested)
 }
 
 pub fn resolve_active(paths: &OcvmPaths, cwd: &Path) -> Result<Option<ResolvedVersion>> {
@@ -109,8 +110,60 @@ pub fn list_installed(paths: &OcvmPaths) -> Result<Vec<String>> {
             versions.push(entry.file_name().to_string_lossy().into_owned());
         }
     }
-    versions.sort();
+    versions.sort_by(|left, right| compare_versions(left, right));
     Ok(versions)
+}
+
+/// Compare OpenClaw calendar versions such as `2026.10.9` and
+/// `2026.10.10-beta.5`.
+///
+/// OpenClaw does not zero-pad version segments, so plain string ordering puts
+/// `2026.10.9` before `2026.9.36`. Compare numeric segments numerically and
+/// treat a prerelease as lower than its matching final release.
+pub fn compare_versions(left: &str, right: &str) -> Ordering {
+    let (left_core, left_prerelease) = split_version(left);
+    let (right_core, right_prerelease) = split_version(right);
+    let core = compare_segments(left_core, right_core);
+    if core != Ordering::Equal {
+        return core;
+    }
+    match (left_prerelease, right_prerelease) {
+        (None, None) => Ordering::Equal,
+        (None, Some(_)) => Ordering::Greater,
+        (Some(_), None) => Ordering::Less,
+        (Some(left), Some(right)) => compare_segments(left, right),
+    }
+}
+
+fn split_version(version: &str) -> (&str, Option<&str>) {
+    let version = version.split('+').next().unwrap_or(version);
+    match version.split_once('-') {
+        Some((core, prerelease)) => (core, Some(prerelease)),
+        None => (version, None),
+    }
+}
+
+fn compare_segments(left: &str, right: &str) -> Ordering {
+    let left: Vec<&str> = left.split('.').collect();
+    let right: Vec<&str> = right.split('.').collect();
+    for index in 0..left.len().max(right.len()) {
+        let left = left.get(index).copied().unwrap_or("0");
+        let right = right.get(index).copied().unwrap_or("0");
+        let ordering = compare_segment(left, right);
+        if ordering != Ordering::Equal {
+            return ordering;
+        }
+    }
+    Ordering::Equal
+}
+
+fn compare_segment(left: &str, right: &str) -> Ordering {
+    match (left.parse::<u64>(), right.parse::<u64>()) {
+        (Ok(left), Ok(right)) => left.cmp(&right),
+        (Ok(_), Err(_)) => Ordering::Less,
+        (Err(_), Ok(_)) => Ordering::Greater,
+        (Err(_), Err(_)) => left.cmp(right),
+    }
 }
 
 pub fn write_shim(paths: &OcvmPaths) -> Result<()> {
@@ -136,8 +189,77 @@ pub fn write_shim(paths: &OcvmPaths) -> Result<()> {
     Ok(())
 }
 
+const NODE_MINIMUM: &str = "Node.js 24.16+ (24.x) or 26.1+ (26.x)";
+const NODE_RECOMMENDED: &str = "24.22.1+ or 26.12.1+";
+const NODE_REQUIREMENTS_URL: &str = "https://docs.openclaw.ai/install/node";
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct NodeVersion {
+    major: u64,
+    minor: u64,
+    patch: u64,
+}
+
+impl NodeVersion {
+    fn parse(raw: &str) -> Option<Self> {
+        let raw = raw.trim();
+        let raw = raw.strip_prefix('v').unwrap_or(raw);
+        let core = raw.split(['-', '+']).next()?;
+        let mut segments = core.split('.');
+        Some(Self {
+            major: segments.next()?.parse().ok()?,
+            minor: segments.next().unwrap_or("0").parse().ok()?,
+            patch: segments.next().unwrap_or("0").parse().ok()?,
+        })
+    }
+
+    fn is_supported(self) -> bool {
+        (self.major == 24 && self.minor >= 16)
+            || (self.major == 26 && self.minor >= 1)
+            || self.major >= 27
+    }
+
+    fn is_recommended(self) -> bool {
+        (self.major == 24 && (self.minor > 22 || (self.minor == 22 && self.patch >= 1)))
+            || (self.major == 26 && (self.minor > 12 || (self.minor == 12 && self.patch >= 1)))
+            || self.major >= 27
+    }
+}
+
+impl std::fmt::Display for NodeVersion {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(formatter, "v{}.{}.{}", self.major, self.minor, self.patch)
+    }
+}
+
+fn detect_node_version() -> Option<NodeVersion> {
+    let output = Command::new("node").arg("--version").output().ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    NodeVersion::parse(&String::from_utf8_lossy(&output.stdout))
+}
+
+fn node_warning() -> Option<String> {
+    match detect_node_version() {
+        None => Some(format!(
+            "warning: Node.js was not found; OpenClaw requires {NODE_MINIMUM}.\n  See {NODE_REQUIREMENTS_URL}"
+        )),
+        Some(version) if !version.is_supported() => Some(format!(
+            "warning: Node.js {version} is not supported by OpenClaw; install {NODE_MINIMUM}. Node 22, 23, and 25 are unsupported.\n  See {NODE_REQUIREMENTS_URL}"
+        )),
+        Some(version) if !version.is_recommended() => Some(format!(
+            "warning: Node.js {version} is below OpenClaw's recommended security patch level; upgrade to {NODE_RECOMMENDED}."
+        )),
+        Some(_) => None,
+    }
+}
+
 pub fn install(paths: &OcvmPaths, source: &dyn SourceProvider, requested: &str) -> Result<String> {
     paths.ensure()?;
+    if let Some(warning) = node_warning() {
+        eprintln!("{warning}");
+    }
     let version = resolve_requested(paths, source, requested)?;
     let staging = paths
         .home
@@ -355,6 +477,25 @@ pub fn doctor(
     let mut ok = true;
     let mut findings = Vec::new();
 
+    match detect_node_version() {
+        None => {
+            ok = false;
+            findings.push(format!(
+                "fix: Node.js was not found; OpenClaw requires {NODE_MINIMUM}\n  See {NODE_REQUIREMENTS_URL}"
+            ));
+        }
+        Some(version) if !version.is_supported() => {
+            ok = false;
+            findings.push(format!(
+                "fix: Node.js {version} is not supported by OpenClaw; install {NODE_MINIMUM}. Node 22, 23, and 25 are unsupported.\n  See {NODE_REQUIREMENTS_URL}"
+            ));
+        }
+        Some(version) if !version.is_recommended() => findings.push(format!(
+            "warn: Node.js {version} is below OpenClaw's recommended security patch level; upgrade to {NODE_RECOMMENDED}."
+        )),
+        Some(_) => {}
+    }
+
     let path = std::env::var("PATH").unwrap_or_default();
     if !path_contains_dir(&path, &paths.shims) {
         ok = false;
@@ -408,7 +549,8 @@ pub fn doctor(
 
 #[cfg(test)]
 mod tests {
-    use super::is_text_file_busy;
+    use super::{compare_versions, is_text_file_busy, NodeVersion};
+    use std::cmp::Ordering;
 
     #[test]
     #[cfg(unix)]
@@ -424,5 +566,73 @@ mod tests {
         let error = std::io::Error::from_raw_os_error(2);
 
         assert!(!is_text_file_busy(&error));
+    }
+
+    #[test]
+    fn calendar_versions_sort_numerically() {
+        let mut versions = vec!["2026.10.9", "2026.9.36", "2026.10.10", "2026.3.28"];
+
+        versions.sort_by(|left, right| compare_versions(left, right));
+
+        assert_eq!(
+            versions,
+            ["2026.3.28", "2026.9.36", "2026.10.9", "2026.10.10"]
+        );
+    }
+
+    #[test]
+    fn prereleases_sort_before_their_final_release() {
+        assert_eq!(
+            compare_versions("2026.10.10-beta.5", "2026.10.10"),
+            Ordering::Less
+        );
+        assert_eq!(
+            compare_versions("2026.10.10-beta.5", "2026.10.10-beta.4"),
+            Ordering::Greater
+        );
+        assert_eq!(
+            compare_versions("2026.10.10-beta.10", "2026.10.10-beta.9"),
+            Ordering::Greater
+        );
+    }
+
+    #[test]
+    fn node_version_parsing_accepts_prefixes_and_prereleases() {
+        assert_eq!(
+            NodeVersion::parse("v26.13.0\n"),
+            Some(NodeVersion {
+                major: 26,
+                minor: 13,
+                patch: 0
+            })
+        );
+        assert_eq!(
+            NodeVersion::parse("27.0.0-nightly20261018f88a1d25e9"),
+            Some(NodeVersion {
+                major: 27,
+                minor: 0,
+                patch: 0
+            })
+        );
+        assert_eq!(NodeVersion::parse("not-a-version"), None);
+    }
+
+    #[test]
+    fn node_support_matrix_matches_openclaw_requirements() {
+        let supported = |raw: &str| NodeVersion::parse(raw).unwrap().is_supported();
+        let recommended = |raw: &str| NodeVersion::parse(raw).unwrap().is_recommended();
+
+        assert!(!supported("22.14.0"));
+        assert!(!supported("23.10.0"));
+        assert!(!supported("25.0.0"));
+        assert!(supported("24.16.0"));
+        assert!(supported("26.1.0"));
+        assert!(supported("27.0.0"));
+
+        assert!(!recommended("24.16.0"));
+        assert!(!recommended("24.22.0"));
+        assert!(recommended("24.22.1"));
+        assert!(!recommended("26.12.0"));
+        assert!(recommended("26.12.1"));
     }
 }

@@ -6,12 +6,19 @@ This is a version manager, not an OpenClaw installer replacement. Installation i
 
 Website: https://ocvm.vercel.app
 
+## Requirements
+
+OpenClaw currently requires Node.js 24.16+ on the 24.x line or 26.1+ on the
+26.x line (24.22.1+ / 26.12.1+ recommended). Node 22, 23, and 25 are
+unsupported. `ocvm` does not install or switch Node.js; `ocvm doctor` reports
+unsupported runtimes before they turn into confusing install failures.
+
 ## Status
 
 MVP crate scaffold with the full command surface from the PRD:
 
 ```bash
-ocvm install <version|latest|stable>
+ocvm install <version|latest|stable|beta|extended-stable>
 ocvm uninstall <version>
 ocvm use <version>
 ocvm default <version>
@@ -19,7 +26,8 @@ ocvm current
 ocvm list
 ocvm list-remote
 ocvm list-remote --channel stable
-ocvm list-remote --channel nightly
+ocvm list-remote --channel beta
+ocvm list-remote --channel extended-stable
 ocvm pin <version>
 ocvm unpin
 ocvm init <zsh|bash|fish>
@@ -130,7 +138,11 @@ Manifest format:
 
 The release provider also accepts a raw array of version objects. Tarball fields can be named `url`, `tarball`, or `npm`.
 
-The npm provider maps `stable` to the `latest` dist-tag when npm does not define a separate `stable` dist-tag. Project config can override this with `channels.stable`.
+The npm provider resolves `latest`, `stable` (npm's `latest` tag), `beta`, and
+`extended-stable` to a concrete version before installing. `beta` falls back to
+`latest` when npm has no beta tag; `extended-stable` never falls back. Project
+config can override any channel with `channels.<name>`. Release manifests opt
+into the same behavior through their `tags` arrays.
 
 Release manifest entries can include `sha256` or `executableSha256`. When present, `ocvm` verifies the staged `openclaw` executable before activation.
 
@@ -195,6 +207,11 @@ ocvm rollback before-upgrade
 ```
 
 Rollback does not delete unrelated installed versions.
+
+`snapshot` and `rollback` only restore ocvm's default and session selection.
+They do not back up OpenClaw's configuration or SQLite state. OpenClaw refuses
+to open state written by a newer schema, so use OpenClaw's own backup tooling
+(see `openclaw backup --help`) before switching to an older release.
 
 ## Install
 
