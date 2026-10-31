@@ -23,6 +23,13 @@ function InstallationDocs() {
         <pre>
           <code>{installCommand}</code>
         </pre>
+        <h2>Node.js requirement</h2>
+        <p>
+          ocvm installs OpenClaw but does not install Node.js. OpenClaw currently
+          requires Node.js 24.16+ on 24.x, 26.1+ on 26.x, or 27+ (24.22.1+ /
+          26.12.1+ recommended). Run <code>ocvm doctor</code> to check the
+          active runtime.
+        </p>
         <h2>Release layout</h2>
         <p>Publish one stable installer script:</p>
         <pre>

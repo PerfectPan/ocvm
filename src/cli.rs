@@ -1,7 +1,7 @@
 use crate::config;
 use crate::paths::OcvmPaths;
 use crate::project;
-use crate::source::provider_from_config;
+use crate::source::{is_channel_name, provider_from_config};
 use crate::version;
 use anyhow::{anyhow, Result};
 use clap::{Parser, Subcommand, ValueEnum};
@@ -16,7 +16,7 @@ pub struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
-    /// Install an OpenClaw version, latest, or stable.
+    /// Install an OpenClaw version or a release channel (latest, stable, beta, extended-stable).
     Install { version: String },
     /// Uninstall an installed OpenClaw version.
     Uninstall { version: String },
@@ -120,7 +120,9 @@ where
         }
         Commands::ListRemote { channel } => {
             let source = provider_from_config(&paths)?;
-            for remote in source.list_remote(channel.as_deref())? {
+            let mut remotes = source.list_remote(channel.as_deref())?;
+            remotes.sort_by(|left, right| version::compare_versions(&left.version, &right.version));
+            for remote in remotes {
                 if remote.tags.is_empty() {
                     println!("{}", remote.version);
                 } else {
@@ -201,13 +203,12 @@ end
 }
 
 fn resolve_for_local_command(paths: &OcvmPaths, requested: &str) -> Result<String> {
-    if requested != "latest" && requested != "stable" {
-        return Ok(requested.to_string());
-    }
-
     let config = config::load(paths)?;
     if let Some(version) = config.channels.get(requested) {
         return Ok(version.clone());
+    }
+    if !is_channel_name(requested) {
+        return Ok(requested.to_string());
     }
 
     let source = provider_from_config(paths)?;

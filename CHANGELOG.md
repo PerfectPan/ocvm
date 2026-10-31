@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added `beta` and `extended-stable` channel resolution, including support for the npm `extended-stable` dist-tag.
+- Resolved channel names to concrete versions before install so defaults, pins, and `ocvm list` stay reproducible.
+- Added Node.js runtime checks to install and `doctor` for OpenClaw's current Node 24/26/27 requirements, including prerelease rejection for Node 24/26.
+- Fixed local and remote version ordering for OpenClaw's unpadded calendar versions.
+- Updated the Docker e2e image to Node 26 and refreshed channel documentation.
 - Replaced GitHub raw installer guidance with a static installer path that can be mirrored to OSS/CDN.
 - Added website documentation routes for installation, commands, configuration, and release sources.
 - Added GitHub and documentation navigation to the landing page.

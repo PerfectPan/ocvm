@@ -19,8 +19,8 @@ const features = [
     body: 'Commit .openclaw-version and every shell in the repo resolves the same OpenClaw version before falling back to user defaults.',
   },
   {
-    title: 'Stable and exact installs',
-    body: 'Install stable, latest, nightly, or an exact version from npm today, with release manifests ready for GitHub Release assets.',
+    title: 'Release channels and exact installs',
+    body: 'Install stable, extended-stable, beta, latest, or an exact version from npm, with release manifests ready for GitHub Release assets.',
   },
   {
     title: 'Snapshot and rollback',
@@ -28,7 +28,7 @@ const features = [
   },
   {
     title: 'Doctor checks',
-    body: 'Inspect PATH, shims, defaults, project pins, and installed executables when a local OpenClaw environment behaves strangely.',
+    body: 'Inspect Node.js, PATH, shims, defaults, project pins, and installed executables when a local OpenClaw environment behaves strangely.',
   },
   {
     title: 'Release verification',

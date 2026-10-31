@@ -23,12 +23,13 @@ export const commandGroups = [
   {
     title: 'Install and remove',
     commands: [
-      'ocvm install <version|latest|stable>',
+      'ocvm install <version|latest|stable|beta|extended-stable>',
       'ocvm uninstall <version>',
       'ocvm list',
       'ocvm list-remote',
       'ocvm list-remote --channel stable',
-      'ocvm list-remote --channel nightly',
+      'ocvm list-remote --channel beta',
+      'ocvm list-remote --channel extended-stable',
     ],
   },
   {

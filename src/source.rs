@@ -26,6 +26,12 @@ pub trait SourceProvider {
     }
 }
 
+pub const CHANNEL_NAMES: [&str; 4] = ["latest", "stable", "beta", "extended-stable"];
+
+pub fn is_channel_name(value: &str) -> bool {
+    CHANNEL_NAMES.contains(&value)
+}
+
 pub struct NpmSource {
     package: String,
 }
@@ -55,15 +61,21 @@ impl NpmSource {
 
 impl SourceProvider for NpmSource {
     fn resolve_alias(&self, requested: &str) -> Result<String> {
-        if requested != "latest" && requested != "stable" {
+        if !is_channel_name(requested) {
             return Ok(requested.to_string());
         }
         let tags = self.npm_json(&["view", &self.package, "dist-tags", "--json"])?;
-        tags.get(requested)
-            .or_else(|| tags.get("latest"))
+        let resolved = match requested {
+            "stable" => tags.get("stable").or_else(|| tags.get("latest")),
+            "beta" => tags.get("beta").or_else(|| tags.get("latest")),
+            "latest" => tags.get("latest"),
+            "extended-stable" => tags.get("extended-stable"),
+            _ => None,
+        };
+        resolved
             .and_then(|value| value.as_str())
             .map(ToOwned::to_owned)
-            .ok_or_else(|| anyhow!("npm dist-tags did not include {requested} or latest"))
+            .ok_or_else(|| anyhow!("npm dist-tags did not include {requested}"))
     }
 
     fn list_remote(&self, channel: Option<&str>) -> Result<Vec<RemoteVersion>> {
@@ -79,7 +91,7 @@ impl SourceProvider for NpmSource {
                 .as_str()
                 .ok_or_else(|| anyhow!("npm versions response included a non-string version"))?;
             let mut labels = Vec::new();
-            for tag in ["stable", "latest", "beta"] {
+            for tag in ["stable", "latest", "beta", "extended-stable"] {
                 if tags.get(tag).and_then(|value| value.as_str()) == Some(version) {
                     labels.push(tag.to_string());
                 }
@@ -166,14 +178,25 @@ impl ReleaseSource {
 
 impl SourceProvider for ReleaseSource {
     fn resolve_alias(&self, requested: &str) -> Result<String> {
-        if requested != "latest" && requested != "stable" {
+        if !is_channel_name(requested) {
             return Ok(requested.to_string());
         }
-        self.versions()?
-            .into_iter()
+        let versions = self.versions()?;
+        if let Some(version) = versions
+            .iter()
             .find(|version| version.tags.iter().any(|tag| tag == requested))
-            .map(|version| version.version)
-            .ok_or_else(|| anyhow!("release manifest did not include {requested}"))
+        {
+            return Ok(version.version.clone());
+        }
+        if requested == "stable" || requested == "beta" {
+            if let Some(version) = versions
+                .iter()
+                .find(|version| version.tags.iter().any(|tag| tag == "latest"))
+            {
+                return Ok(version.version.clone());
+            }
+        }
+        Err(anyhow!("release manifest did not include {requested}"))
     }
 
     fn list_remote(&self, channel: Option<&str>) -> Result<Vec<RemoteVersion>> {
