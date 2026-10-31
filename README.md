@@ -8,10 +8,11 @@ Website: https://ocvm.vercel.app
 
 ## Requirements
 
-OpenClaw currently requires Node.js 24.16+ on the 24.x line or 26.1+ on the
-26.x line (24.22.1+ / 26.12.1+ recommended). Node 22, 23, and 25 are
-unsupported. `ocvm` does not install or switch Node.js; `ocvm doctor` reports
-unsupported runtimes before they turn into confusing install failures.
+OpenClaw currently requires Node.js 24.16+ on the 24.x line, 26.1+ on the
+26.x line, or 27+ (24.22.1+ / 26.12.1+ recommended). Node 24/26 prereleases
+and Node 22, 23, and 25 are unsupported. `ocvm` does not install or switch
+Node.js; `ocvm doctor` reports unsupported runtimes before they turn into
+confusing install failures.
 
 ## Status
 

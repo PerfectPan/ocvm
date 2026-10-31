@@ -198,28 +198,40 @@ struct NodeVersion {
     major: u64,
     minor: u64,
     patch: u64,
+    prerelease: bool,
 }
 
 impl NodeVersion {
     fn parse(raw: &str) -> Option<Self> {
         let raw = raw.trim();
         let raw = raw.strip_prefix('v').unwrap_or(raw);
-        let core = raw.split(['-', '+']).next()?;
+        let (raw, _build) = raw.split_once('+').unwrap_or((raw, ""));
+        let (core, prerelease) = match raw.split_once('-') {
+            Some((core, suffix)) => (core, !suffix.is_empty()),
+            None => (raw, false),
+        };
         let mut segments = core.split('.');
         Some(Self {
             major: segments.next()?.parse().ok()?,
             minor: segments.next().unwrap_or("0").parse().ok()?,
             patch: segments.next().unwrap_or("0").parse().ok()?,
+            prerelease,
         })
     }
 
     fn is_supported(self) -> bool {
+        if self.prerelease && self.major <= 26 {
+            return false;
+        }
         (self.major == 24 && self.minor >= 16)
             || (self.major == 26 && self.minor >= 1)
             || self.major >= 27
     }
 
     fn is_recommended(self) -> bool {
+        if self.prerelease && self.major <= 26 {
+            return false;
+        }
         (self.major == 24 && (self.minor > 22 || (self.minor == 22 && self.patch >= 1)))
             || (self.major == 26 && (self.minor > 12 || (self.minor == 12 && self.patch >= 1)))
             || self.major >= 27
@@ -228,7 +240,15 @@ impl NodeVersion {
 
 impl std::fmt::Display for NodeVersion {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(formatter, "v{}.{}.{}", self.major, self.minor, self.patch)
+        if self.prerelease {
+            write!(
+                formatter,
+                "v{}.{}.{} (prerelease)",
+                self.major, self.minor, self.patch
+            )
+        } else {
+            write!(formatter, "v{}.{}.{}", self.major, self.minor, self.patch)
+        }
     }
 }
 
@@ -603,7 +623,8 @@ mod tests {
             Some(NodeVersion {
                 major: 26,
                 minor: 13,
-                patch: 0
+                patch: 0,
+                prerelease: false
             })
         );
         assert_eq!(
@@ -611,7 +632,8 @@ mod tests {
             Some(NodeVersion {
                 major: 27,
                 minor: 0,
-                patch: 0
+                patch: 0,
+                prerelease: true
             })
         );
         assert_eq!(NodeVersion::parse("not-a-version"), None);
@@ -627,6 +649,10 @@ mod tests {
         assert!(!supported("25.0.0"));
         assert!(supported("24.16.0"));
         assert!(supported("26.1.0"));
+        assert!(!supported("24.16.0-rc.1"));
+        assert!(!supported("24.22.1-rc.1"));
+        assert!(!supported("26.12.1-rc.1"));
+        assert!(supported("27.0.0-head"));
         assert!(supported("27.0.0"));
 
         assert!(!recommended("24.16.0"));
@@ -634,5 +660,6 @@ mod tests {
         assert!(recommended("24.22.1"));
         assert!(!recommended("26.12.0"));
         assert!(recommended("26.12.1"));
+        assert!(!recommended("26.12.1-rc.1"));
     }
 }

@@ -16,7 +16,7 @@ pub struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
-    /// Install an OpenClaw version, latest, or stable.
+    /// Install an OpenClaw version or a release channel (latest, stable, beta, extended-stable).
     Install { version: String },
     /// Uninstall an installed OpenClaw version.
     Uninstall { version: String },
