@@ -1,10 +1,9 @@
+FROM node:26-bookworm AS node
 FROM rust:1-bookworm
 
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends ca-certificates curl gnupg \
-  && curl -fsSL https://deb.nodesource.com/setup_26.x | bash - \
-  && apt-get install -y --no-install-recommends nodejs \
-  && rm -rf /var/lib/apt/lists/*
+COPY --from=node /usr/local/ /usr/local/
+RUN dpkg --compare-versions "$(node -p 'process.versions.node')" ge 26.13.1 \
+  && node --version && npm --version
 
 WORKDIR /work
 COPY . .
@@ -13,6 +12,5 @@ ENV OCVM_HOME=/tmp/ocvm-home
 ENV OCVM_NPM_PACKAGE=openclaw
 
 RUN cargo build --release --locked
-RUN node --version && npm --version
 
 CMD ["./scripts/e2e-npm-openclaw.sh"]
