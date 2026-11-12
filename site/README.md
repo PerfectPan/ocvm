@@ -6,7 +6,7 @@ Production URL: https://ocvm.vercel.app
 
 ## Development
 
-Use Node.js 26.13.1 (see `.node-version`).
+Use Node.js 26.x, version 26.13.1 or later. The site manifest defines this range for npm and CI.
 
 ```bash
 npm ci
@@ -25,11 +25,11 @@ Vercel selects Node.js 26.x for builds and functions and manages patch updates.
 ## Docker Verification
 
 ```bash
-docker run --rm -u "$(id -u):$(id -g)" \
+docker run --pull=always --rm -u "$(id -u):$(id -g)" \
   -e npm_config_cache=/tmp/npm-cache \
   -v "$PWD/..":/work \
   -w /work/site \
-  node:26.13.1-bookworm sh -lc "npm ci && npm run build"
+  node:26-bookworm sh -lc "npm ci && npm run build"
 ```
 
 ## Deploy
