@@ -1,5 +1,6 @@
 {
   "framework": null,
+  "git": { "deploymentEnabled": { "chore/node-26-13-1": false } },
   "installCommand": "npm ci",
   "buildCommand": "npm run build"
 }

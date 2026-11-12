@@ -8,6 +8,7 @@ const config = defineConfig({
   plugins: [
     nitro({
       preset: 'vercel',
+      vercel: { functions: { runtime: 'nodejs26.x' } },
       rollupConfig: { external: [/^@sentry\//] },
     }),
     tanstackStart(),

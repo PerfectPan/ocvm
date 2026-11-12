@@ -1,10 +1,7 @@
+FROM node:26.13.1-bookworm AS node
 FROM rust:1-bookworm
 
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends ca-certificates curl gnupg \
-  && curl -fsSL https://deb.nodesource.com/setup_26.x | bash - \
-  && apt-get install -y --no-install-recommends nodejs \
-  && rm -rf /var/lib/apt/lists/*
+COPY --from=node /usr/local/ /usr/local/
 
 WORKDIR /work
 COPY . .
